@@ -8,23 +8,16 @@ from scipy.spatial import distance
 import glob
 from segmentation_pipeline import label_points, get_files
 
-
 """
 This function takes in the image path, process the image, detects the contours
 in the image, save the image bounding boxes and output the image coordinates.
 """
 
-# path to the image
-#path = "C:/Users/ajayi/OneDrive/Desktop/100patents_design_jpg/subfigures/*.jpg"
-#patent_imgs = "C:/Users/ajayi/OneDrive/Desktop/100patents_design_jpg/patent_images/*.jpg"
-
-img_paths = get_files()
-
 # This function loads the image and wipe out the labels 
 # using label coordinates from Amazon Rekognition tool
 def figure_only(index):
     try:
-        
+        img_paths = get_files()
         img_path = img_paths[index]  # img_paths is from amazon_dist_calc
         image = cv2.imread(img_path)
         # resize the image
@@ -91,11 +84,12 @@ def draw_contour(index):
                 box = np.int0(box)
                 image_coord.append(np.abs(box))
         
-    #           cv2.drawContours(image_res, [box], 0, (0, 255, 0), 2)
-    #           cv2.imshow("Image only", image_res)
+    #            cv2.drawContours(gray, [box], 0, (0, 255, 0), 2)
+    #            cv2.imshow("Image only", gray)
     #           cv2.imwrite("img_ex11.jpg", image_res)
-    #           cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+    #            cv2.waitKey(0)
+    #            print(box)
+    #    cv2.destroyAllWindows()
     except Exception as error:
         print(error)
     return image_coord 
