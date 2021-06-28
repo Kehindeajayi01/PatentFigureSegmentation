@@ -8,32 +8,25 @@ from scipy.spatial import distance
 from Amazon_label import *
 import argparse
 
+#we obtained get_args() from Amazon_label
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("file_path", help = "input directory")
-    parser.add_argument("--outputDirectory", help = "directory to save the segmented images")
-    parser.add_argument("--jsonDirectory", help = "directory to save the json output")
-    
-    return parser
-
-
-"""This function collects all the subfigure files"""
+"""This function collects all the figure files"""
 def get_files():
     files = []
     parser = get_args()
     args = parser.parse_args()
-    img_paths = args.file_path
-    rel_paths = os.listdir(img_paths)
+    img_dir = args.file_path
+    rel_paths = os.listdir(img_dir)
     for path in rel_paths:
-        file = os.path.join(img_paths, path)
+        file = os.path.join(img_dir, path)
         files.append(file)
     return files
 
-img_paths = get_files()
+#img_paths = get_files()
 
 # function to get the height and width of the image
 def get_width_height(index):
+    img_paths = get_files()
     img_path = img_paths[index]
     img = cv2.imread(img_path)
     image_res = cv2.resize(img, None, fx = 0.3, fy = 0.3, interpolation=cv2.INTER_AREA)

@@ -11,30 +11,59 @@ from cut_image import crop_image
 from segmentation_pipeline import get_args
 
 
-def format_label(label_name):
+def finetune_label(label_name):
     prefixes = ("FIG", "figure", "Figure", "fig", "FIGURE", "Fig")
+    prefixes2 = ("FIG.", "figure.", "Figure.", "fig.", "FIGURE.", "Fig.")
     suffix = "."
     new_label_name = {}
     try:
         
-        if len(label_name) > 1:
-        
-            for k, v in label_name.items():
-                if v.startswith(prefixes) and v.endswith(tuple("0123456789")):
-                    new_label_name[k] = v
-    
-                elif v.startswith(tuple("0123456789")) and label_name[k + 1].startswith(prefixes) and \
-                    label_name[k+ 1].endswith(suffix):
-                    name = label_name[k + 1] + v
-                    new_label_name[k] = name
-                
-        elif len(label_name) == 1:
+        if len(label_name) == 1:
             for k, v in label_name.items():
                 new_label_name[k] = v
+        else:
+        
+            keys = list(label_name.keys())
+            val = list(label_name.values())
+            left = 0
+            right = 1
+            while right < len(keys) and left < len(keys):
+                # First value starts with "FIG" and ends with a number
+                if (val[left].startswith(prefixes) or val[left].startswith(prefixes2)) and val[left].endswith(tuple("0123456789")):
+                    new_label_name[keys[left]] = val[left]
+                    left += 1
+                # Second starts with a "FIG" and ends with a number
+                elif (val[right].startswith(prefixes)or val[right].startswith(prefixes2)) and val[right].endswith(tuple("0123456789")):
+                    new_label_name[keys[right]] = val[right]
+                    right += 1
+                # first starts with a number and second starts with a "FIG" and ends with a number
+                elif val[left].startswith(tuple("0123456789")) and val[right].startswith(prefixes) and val[right].endswith(suffix):
+                    name = val[right] + val[left]
+                    new_label_name[keys[left]] = name
+                    left += 1
+                    right += 1
+                # first starts with a number and second starts with a "FIG"
+                elif val[left].startswith(tuple("0123456789")) and val[right].startswith(prefixes):
+                    name = val[right] + " " + val[left]
+                    new_label_name[keys[left]] = name
+                    left += 1
+                    right += 1
+                # first and second start with a number
+                elif val[left].startswith(tuple("0123456789")) and val[right].startswith(tuple("0123456789")):
+                    right += 1
+                # first starts with a "FIG" and second starts with a number
+                elif val[left].startswith(prefixes) and val[right].startswith(tuple("0123456789")):
+                    left += 1
+                    right += 1
+                
+                else:
+                    right += 1
     except Exception as error:
         print(error)
     return new_label_name
+            
 
+# function to generate our json file
 # function to generate our json file
 def patent_json(index):
     chars = string.digits
@@ -50,16 +79,21 @@ def patent_json(index):
     _, label_name = extract_label_bboxes(index)
 
     # call the function to format the label_name
-    new_label_name = format_label(label_name)
+    new_label_name = finetune_label(label_name)
     # case for figure with subfigures
-    json_name['patent_id'] = relative_path
-    json_name["fig_id"] =  ''.join(choice(chars) for _ in range(4))
+    json_name['patent_id'] = relative_path[:19]
+    json_name["Figure_file"] = relative_path
     json_name["n_subfigures"] = len(new_label_name)
     crop_image(index)
     for key, val in new_label_name.items():
         sub_file = {}
-        sub_file['subfigure_id'] = key + 1
-        sub_file['subfigure_file'] = relative_path + "_" + str(key) + ".jpg"
+        num = ""
+        for c in val:
+            if c.isdigit():
+                num += c
+            
+        sub_file["subfigure_id"] = int(num) if num.isdigit() else (num + ".")
+        sub_file["subfigure_file"] = (relative_path + "_" + num) if num.isdigit() else (relative_path + "_" + ".")
         sub_file["subfigure_label"] = val
         sub_list.append(sub_file)
         
@@ -78,7 +112,7 @@ def output_json():
             sample = patent_json(i)
             json.dump(sample, fp, ensure_ascii=False)
             fp.write("\n")
-            print(f"Image {i} is successfully segmented")
+            #print(f"Image {i} is successfully segmented")
         fp.close()
         print("Done!")
     
