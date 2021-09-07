@@ -1,5 +1,5 @@
 # PatentFigureSegmentation
-This project involves segmenting figures and labels in patent figures. 
+This project involves segmenting figures and labels in patent figures using Contour method. 
 The following steps were carried out in order to perform the segmentation:
 
 - We use Amazon Rekognition tool to obtain bounding box coordinates for the figure labels
